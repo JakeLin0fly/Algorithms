@@ -46,3 +46,44 @@ void select_sort(vector<Type>& nums){
     }
 }
 
+/**
+ * 插入排序
+ * 稳定性：稳定
+ * 时间复杂度：O(n*n)
+ * 空间复杂度：O(1)
+**/
+template<class Type>
+void insert_sort(vector<Type>& nums){
+    int n = nums.size();
+    for(int ordered = 1; ordered < n; ++ordered){
+        Type value = nums[ordered];
+        int i = ordered - 1;
+        while(i >= 0 && nums[i] > value){
+            nums[i+1] = nums[i];
+            --i;
+        }
+        nums[i+1] = value;
+    }
+}
+
+/**
+ * 希尔排序
+ * 稳定性：不稳定（可能打破原来元素的相对位置）
+ * 时间复杂度：O(nlogn)
+ * 空间复杂度：O(1)
+**/
+template<class Type>
+void shell_sort(vector<Type>& nums){
+    int n = nums.size();
+    for(int gap = n / 2; gap > 0; gap /= 2){
+        for(int i = gap; i < n; ++i){
+            int value = nums[i];
+            int j = i;
+            while(j >= gap && value < nums[j-gap]){
+                nums[j] = nums[j-gap];
+                j -= gap;
+            }
+            nums[j] = value;
+        }
+    }
+}

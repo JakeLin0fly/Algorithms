@@ -8,9 +8,7 @@
 
 #### 冒泡排序
 
-【理解】
-
-顾名思义，就像一堆气泡，大的气泡往上冒，一次遍历完的结果是待排序的气泡中最大的气泡冒出到有序序列。
+> 顾名思义，就像一堆气泡，大的气泡往上冒，一次遍历完的结果是待排序的气泡中最大的气泡冒出到有序序列。
 
 【步骤】
 
@@ -23,7 +21,7 @@
 ```cpp
 /**
  * 冒泡排序
- * 稳定性：√
+ * 稳定性：稳定
  * 时间复杂度：O(n*n)
  * 空间复杂度：O(1)
 **/
@@ -47,9 +45,7 @@ void bubble_sort(vector<T>& nums){
 
 #### 选择排序
 
-【理解】
-
-每次遍历，选择待排序元素中最大元素，放置到待排序子数组最后位置。一次遍历至多只进行交换一次。
+> 每次遍历，选择待排序元素中最大元素，放置到待排序子数组最后位置。一次遍历至多只进行交换一次。
 
 【步骤】
 
@@ -81,7 +77,71 @@ void select_sort(vector<Type>& nums){
 
 #### 插入排序
 
+> 将待排序元素依次插入有序序列
+
+【步骤】
+
+1. 将第一个元素视为有序序列，往后为待排序序列；
+2. 依次向有序序列插入元素到合适的位置。
+
+```cpp
+/**
+ * 插入排序
+ * 稳定性：稳定
+ * 时间复杂度：O(n*n)
+ * 空间复杂度：O(1)
+**/
+template<class Type>
+void insert_sort(vector<Type>& nums){
+    int n = nums.size();
+    for(int ordered = 1; ordered < n; ++ordered){
+        Type value = nums[ordered];
+        int i = ordered - 1;
+        while(i >= 0 && nums[i] > value){
+            nums[i+1] = nums[i];
+            --i;
+        }
+        nums[i+1] = value;
+    }
+}
+```
+
 #### 希尔排序
+
+> 也称递减增量排序算法，希尔排序是基于插入排序的以下两点性质而提出改进方法的：
+>
+> - 插入排序在对几乎已经排好序的数据操作时，效率高，即可以达到线性排序的效率；
+> - 但插入排序一般来说是低效的，因为插入排序每次只能将数据移动一位；
+
+【图解】
+
+参考：https://www.cnblogs.com/chengxiao/p/6104371.html
+
+```cpp
+/**
+ * 希尔排序
+ * 稳定性：不稳定（可能打破原来元素的相对位置）
+ * 时间复杂度：O(nlogn)
+ * 空间复杂度：O(1)
+**/
+template<class Type>
+void shell_sort(vector<Type>& nums){
+    int n = nums.size();
+    for(int gap = n / 2; gap > 0; gap /= 2){
+        for(int i = gap; i < n; ++i){
+            int value = nums[i];
+            int j = i;
+            while(j >= gap && value < nums[j-gap]){
+                nums[j] = nums[j-gap];
+                j -= gap;
+            }
+            nums[j] = value;
+        }
+    }
+}
+```
+
+
 
 #### 归并排序
 
