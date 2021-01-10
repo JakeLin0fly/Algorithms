@@ -102,13 +102,13 @@ void shell_sort(vector<Type>& nums) {
  * 空间复杂度：O(n)
 **/
 template<class Type>
-void _sort(vector<Type>& nums, int start, int end) {
+void _merge_sort(vector<Type>& nums, int start, int end) {
     if (start >= end)
         return;
     int mid = start + (end - start) / 2;
     // 递归
-    _sort(nums, start, mid);    // [start, mid]
-    _sort(nums, mid + 1, end);  // [mid+1, end]
+    _merge_sort(nums, start, mid);    // [start, mid]
+    _merge_sort(nums, mid + 1, end);  // [mid+1, end]
     // 合并
     vector<Type> temp(end - start + 1, 0); // 暂存数组 可只使用一个 O(n)
     int left = start, right = mid + 1, t = 0;
@@ -131,7 +131,7 @@ void _sort(vector<Type>& nums, int start, int end) {
 
 template<class Type>
 void merge_sort(vector<Type>& nums){
-    _sort(nums, 0, nums.size() - 1);
+    _merge_sort(nums, 0, nums.size() - 1);
 }
 
 
@@ -168,27 +168,86 @@ void quick_sort(vector<Type>& nums) {
     _quick_sort(nums, 0, nums.size() - 1);
 }
 
-
 /**
  * 堆排序
  * 稳定性：不稳定（可能打破原来元素的相对位置）
  * 时间复杂度：O(n*logn)
  * 空间复杂度：O(1)
 **/
+// 自顶向下调整堆 [start, end]
+template<class Type>
+void adjustMaxHeap(vector<Type>& nums, int start, int end) {
+    int dad = start; // 父结点
+    int son = dad * 2 + 1;  // 子结点
+    while (son <= end) {
+        // 选择较大的子结点
+        if (son + 1 <= end && nums[son] < nums[son + 1]) {
+            ++son;
+        }
+        if (nums[son] <= nums[dad]) // 满足大顶堆条件
+            break;
+        else { // 不满足大顶堆添加 交换父子结点 继续向下调整
+            swap(nums[dad], nums[son]);
+            dad = son;
+            son = dad * 2 + 1;
+        }
+    }
+}
+
 template<class Type>
 void heap_sort(vector<Type>& nums) {
     int n = nums.size();
+    // 1. 构建堆 从第一个有孩子的结点开始调整
+    for (int i = n / 2 - 1; i >= 0; --i) {
+        adjustMaxHeap(nums, i, n - 1);
+    }
+    // 2. 依次取最大元素放置末尾
+    --n;
+    while (n > 0) {
+        swap(nums[0], nums[n]);
+        adjustMaxHeap(nums, 0, --n);
+    }
 }
 
 /**
  * 计数排序
  * 稳定性：稳定
- * 时间复杂度：O(n+m)
- * 空间复杂度：O(m)
+ * 时间复杂度：O(m+n)
+ * 空间复杂度：O(m+n)
 **/
 template<class Type>
 void counting_sort(vector<Type>& nums) {
     int n = nums.size();
+    if (n <= 1)
+        return;
+    // 1. 得到待排序序列的最值 [min, max]
+    int min = nums[0];
+    int max = nums[0];
+    for (int i = 1; i < n; ++i) {
+        if (min > nums[i])
+            min = nums[i];
+        else if (max < nums[i])
+            max = nums[i];
+    }
+    // 2. 统计 [min, max] 中值出现的次数
+    int n_count = max - min + 1;
+    vector<Type> count(n_count, 0);
+    for (int i = 0; i < n; ++i) {
+        ++count[nums[i] - min];
+    }
+    // 3. 对所有的计数累加，得到小于等于该元素的个数（即该元素排序的位置）
+    for (int i = 1; i < n_count; ++i) {
+        count[i] += count[i - 1];
+    }
+    // 4. 反向填充临时数组
+    vector<Type> temp(n, 0);
+    for (int i = n - 1; i >= 0; --i) {
+        temp[--count[nums[i] - min]] = nums[i];
+    }
+    // 5. 给目标数组赋值
+    for (int i = 0; i < n; ++i) {
+        nums[i] = temp[i];
+    }
 }
 
 /**
