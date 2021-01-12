@@ -1,10 +1,8 @@
 ### 排序算法
 
-排序算法可以分为内部排序和外部排序，**内部排序**是数据记录在内存中进行排序，而**外部排序**是因排序的数据很大，一次不能容纳全部的排序记录，在排序过程中需要访问外存。【*图片来自网络*】
+排序算法可以分为内部排序和外部排序，**内部排序**是数据记录在内存中进行排序，而**外部排序**是因排序的数据很大，一次不能容纳全部的排序记录，在排序过程中需要访问外存。
 
 ![sort](./img/sort.png)
-
-![sort2](./img/sort2.png)
 
 #### 冒泡排序
 
@@ -158,13 +156,13 @@ void shell_sort(vector<Type>& nums) {
  * 空间复杂度：O(n)
 **/
 template<class Type>
-void _sort(vector<Type>& nums, int start, int end) {
+void _merge_sort(vector<Type>& nums, int start, int end) {
     if (start >= end)
         return;
     int mid = start + (end - start) / 2;
     // 递归
-    _sort(nums, start, mid);    // [start, mid]
-    _sort(nums, mid + 1, end);  // [mid+1, end]
+    _merge_sort(nums, start, mid);    // [start, mid]
+    _merge_sort(nums, mid + 1, end);  // [mid+1, end]
     // 合并
     vector<Type> temp(end - start + 1, 0); // 暂存数组 可只使用一个 O(n)
     int left = start, right = mid + 1, t = 0;
@@ -187,7 +185,7 @@ void _sort(vector<Type>& nums, int start, int end) {
 
 template<class Type>
 void merge_sort(vector<Type>& nums){
-    _sort(nums, 0, nums.size() - 1);
+    _merge_sort(nums, 0, nums.size() - 1);
 }
 ```
 
@@ -343,6 +341,123 @@ void counting_sort(vector<Type>& nums) {
 
 #### 桶排序
 
+> 桶排序是计数排序的升级。设置一个定量的数组当作空桶，得到待排序元素范围 [min, max] 后，将元素放入对应的**桶**中。对非空的桶进行排序。最后将非空桶中的元素放回目标数组。
+
+【步骤】
+
+1. 设置一个定量的数组当作空桶；
+2. 得到待排序序列的元素范围 [min, max]；
+3. 将待排序元素放入对应的桶中；
+4. 队非空的桶进行排序；
+5. 将非空桶中的元素放回目标数组。
+
+```cpp
+/**
+ * 桶排序
+ * 稳定性：稳定
+ * 时间复杂度：O(n+m)
+ * 空间复杂度：O(n+m)
+**/
+template<class Type>
+void bucket_sort(vector<Type>& nums, int bucketCount) {
+    int n = nums.size();
+    if (n <= 1)
+        return;
+    // 1. 设置一个定量的数组当作空桶
+    vector<vector<Type>> temp(bucketCount, vector<Type>());
+    // 2. 得到待排序序列的元素范围[min, max]
+    int min = nums[0];
+    int max = nums[0];
+    for (int i = 1; i < n; ++i) {
+        if (min > nums[i])
+            min = nums[i];
+        else if (max < nums[i])
+            max = nums[i];
+    }
+    // 3. 将待排序元素放入对应的桶中
+    int space = (max - min + 1) / bucketCount + 1;
+    for (int i = 0; i < n; ++i) {
+        temp[(nums[i] - min) / space].push_back(nums[i]);
+    }
+    // 4. 对非空的桶进行排序
+    for (int i = 0; i < bucketCount; ++i) {
+        insert_sort(temp[i]);
+    }
+    // 5. 将非空桶中的元素放回目标数组
+    int index = 0;
+    for (int i = 0; i < bucketCount; ++i) {
+        for (int j = 0; j < temp[i].size(); ++j) {
+            nums[index++] = temp[i][j];
+        }
+    }
+}
+```
+
 #### 基数排序
+
+> 基数排序是计数排序和桶排序的结合。
+
+【步骤】
+
+1. 计算最大位数 `bits`
+2. 进行 `bits` 次排序
+   1. 清空计数
+   2. 统计每个桶中的记录数
+   3. 将临时数组中的位置依次分配给每个桶
+   4. 反向将所有桶中记录依次收集到临时数组中
+   5. 将临时数组的内容复制到目标数组中
+
+```cpp
+/**
+ * 基数排序
+ * 稳定性：稳定
+ * 时间复杂度：O(n*m)
+ * 空间复杂度：O(n+m)
+**/
+template<class Type>
+void radix_sort(vector<Type>& nums) {
+    int n = nums.size();
+    if (n <= 1)
+        return;
+    // 1. 计算最大位数 bits
+    int max_value = nums[0];
+    for (int i = 1; i < n; ++i) {
+        if (max_value < nums[i])
+            max_value = nums[i];
+    }
+    int bits = 0;  // 最大位数
+    while (max_value) {
+        max_value /= 10;
+        ++bits;
+    }
+    // 2. 进行 bits 次排序
+    vector<Type> temp(n, 0);
+    vector<int> count(10, 0);
+    int radix = 1;
+    while (bits--) {
+        // 2.1 清空计数
+        for (int i = 0; i < 10; ++i)
+            count[i] = 0;
+        // 2.2 统计每个桶中的记录数
+        for (int i = 0; i < n; ++i) {
+            ++count[(nums[i] / radix) % 10];
+        }
+        // 2.3 将 temp 中的位置依次分配给每个桶
+        for (int i = 1; i < 10; ++i) {
+            count[i] += count[i - 1];
+        }
+        // 2.4 反向将所有桶中记录依次收集到 temp 中
+        for (int i = n - 1; i >= 0; --i) {
+            temp[--count[(nums[i] / radix) % 10]] = nums[i];
+        }
+        // 2.5 将临时数组的内容复制到 nums 中
+        for (int i = 0; i < n; ++i) {
+            nums[i] = temp[i];
+        }
+        radix *= 10;
+    }
+}
+```
+
 
 
