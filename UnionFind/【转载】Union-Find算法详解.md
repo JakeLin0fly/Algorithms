@@ -45,7 +45,7 @@ public:
     bool isConnected(int a, int b);
 
     /* 返回图中的连通分量 */
-    int getCount() { return count; };
+    int getCount() { return count; }
     
 private:
     /* 返回结点 x 的根节点 */
@@ -109,7 +109,7 @@ public:
     bool isConnected(int a, int b);
 
     /* 返回图中的连通分量 */
-    int getCount() { return count; };
+    int getCount() { return count; }
     
 private:
     /* 返回结点 x 的根节点 */
@@ -160,6 +160,62 @@ void UnionFind::connect(int a, int b) {
 我们能不能进一步压缩每棵树的高度，使树高始终保持为常数？这样`findRoot` 就能以 `O(1)` 的时间找到某一节点的根节点，相应的， `connect` 和 `isConnected`  复杂度都下降为 `O(1)` 。要做到这一点，非常简单，只需要在 `findRoot`  中加一行代码：
 
 ```cpp
+int UnionFind::findRoot(int x) {
+    // 根结点有 x == parent[x]
+    while (x != parent[x]) {
+        // 「路径压缩」 减少查询迭代次数
+        parent[x] = parent[parent[x]];
+        x = parent[x];
+    }
+    return x;
+}
+```
+
+### 代码整合
+
+```cpp
+class UnionFind {
+public:
+    UnionFind(int n); 		
+    void connect(int a, int b);		/* 将 a 和 b 连接(连通) */
+    bool isConnected(int a, int b);	/* 判断 a 和 b 是否连通 */
+	int getCount() { return count; } /* 返回图中的连通分量 */
+	int findRoot(int x);			/* 返回结点 x 的根节点 */
+    /** 其他函数 **/
+private:
+    int count;			// 连通分量
+    vector<int> parent;	// parent[i]: 结点 i 的父节点    
+    vector<int> size;	// 新增一个数组记录树的 “重量”
+};
+
+UnionFind::UnionFind(int n) : count(n) {
+    // 初始时所有结点互不连通
+    // 父节点指向自己
+    for (int i = 0; i < n; ++i){
+        parent.push_back(i);
+        // 重量应该初始化 1
+        size.push_back(1);
+    }
+}
+void UnionFind::connect(int a, int b) {
+    int rootA = findRoot(a);
+    int rootB = findRoot(b);
+    if (rootA == rootB)
+        return ;
+    // 小树根节点接到大树根节点下 「较平衡」
+    if (size[rootA] < size[rootB]){
+        parent[rootA] = rootB;
+        size[rootB] += size[rootA];
+    } else {
+        parent[rootB] = rootA;
+        size[rootA] += size[rootB];
+    }
+    // 连通分量 -1
+    --count;
+}
+bool UnionFind::isConnected(int a, int b) {
+    return findRoot(a) == findRoot(b);
+}
 int UnionFind::findRoot(int x) {
     // 根结点有 x == parent[x]
     while (x != parent[x]) {
